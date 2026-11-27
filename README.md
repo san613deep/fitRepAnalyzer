@@ -1,134 +1,150 @@
-## Data Science Project Template
-
 # Barbell Exercise Tracking & Classification
 
-This project implements a complete machine learning pipeline for sensor-based tracking, feature engineering, and classification of barbell exercises using wearable device data. The workflow covers data ingestion, cleaning, feature extraction, model training, and evaluation.
+A wearable-sensor machine-learning project that classifies barbell exercises and explores repetition counting from accelerometer and gyroscope time-series data.
 
----
+The repository follows a research workflow: sensor data preparation, signal processing, feature extraction, model comparison and repetition analysis. It is a learning/portfolio project; model accuracy and generalization should be measured on held-out participants before being reported.
 
-## Table of Contents
+## Problem
 
-- [Project Overview](#project-overview)
-- [Data Pipeline](#data-pipeline)
-  - [1. Data Ingestion & Preprocessing](#1-data-ingestion--preprocessing)
-  - [2. Outlier Detection & Removal](#2-outlier-detection--removal)
-  - [3. Feature Engineering](#3-feature-engineering)
-  - [4. Model Training & Evaluation](#4-model-training--evaluation)
-  - [5. Repetition Counting](#5-repetition-counting)
-- [Technologies Used](#technologies-used)
-- [How to Run](#how-to-run)
-- [Project Structure](#project-structure)
-- [Results & Insights](#results--insights)
+Recognize exercises such as squat, bench press, deadlift and overhead press using motion signals from wearable sensors. The project uses time-domain, frequency-domain and dimensionality-reduction features to describe movement patterns.
 
----
+## Workflow
 
-## Project Overview
-
-The goal is to automatically classify barbell exercises (e.g., squat, bench, deadlift) and count repetitions using time-series data from accelerometer and gyroscope sensors. The pipeline includes robust data cleaning, advanced feature extraction (temporal, frequency, PCA, clustering), and model selection for accurate activity recognition.
-
----
-
-## Data Pipeline
-
-### 1. Data Ingestion & Preprocessing (`make_dataset.py`)
-
-- Loads raw CSV files from wearable sensors (MetaMotion) for multiple participants and exercise sessions.
-- Extracts metadata (participant, label, category, set) from filenames.
-- Merges accelerometer and gyroscope data into a unified dataframe.
-- Resamples data to a consistent frequency (200ms) and splits by day.
-- Exports processed data for further analysis.
-
-### 2. Outlier Detection & Removal (`remove_outliers.py`)
-
-- Visualizes sensor data distributions and boxplots by exercise label.
-- Implements three outlier detection methods:
-  - Interquartile Range (IQR)
-  - Chauvenet's Criterion (statistical)
-  - Local Outlier Factor (LOF, distance-based)
-- Removes outliers by replacing them with NaN, grouped by exercise label.
-- Exports cleaned dataset for feature engineering.
-
-### 3. Feature Engineering (`build_features.py`)
-
-- Handles missing values via interpolation.
-- Calculates set durations and aggregates statistics.
-- Applies Butterworth lowpass filter to smooth sensor signals.
-- Performs Principal Component Analysis (PCA) for dimensionality reduction.
-- Generates derived features (sum of squares, temporal rolling means/stds).
-- Extracts frequency-domain features using Fourier Transform.
-- Reduces redundancy by handling overlapping windows.
-- Applies clustering (KMeans) to group similar movement patterns.
-- Exports final feature-rich dataset for modeling.
-
-### 4. Model Training & Evaluation (`train_model.py`)
-
-- Splits data into training and test sets (random and participant-based).
-- Defines multiple feature sets (basic, engineered, PCA, temporal, frequency, cluster, selected).
-- Performs forward feature selection using decision trees.
-- Trains and compares classifiers:
-  - Neural Network (MLP)
-  - Random Forest
-  - K-Nearest Neighbors
-  - Decision Tree
-  - Naive Bayes
-- Uses grid search and cross-validation for hyperparameter tuning.
-- Visualizes model performance with grouped bar plots and confusion matrices.
-- Evaluates generalization to unseen participants.
-
-### 5. Repetition Counting (`count_repetitions.py`)
-
-- Calculates vector magnitudes for accelerometer and gyroscope data.
-- Visualizes sensor signals for each exercise type.
-- Applies lowpass filtering and peak detection to count repetitions.
-- Benchmarks predicted reps against ground truth and computes error metrics.
-
----
-
-## Technologies Used
-
-- Python 3
-- Pandas, NumPy
-- Scikit-learn (ML, outlier detection, clustering)
-- Matplotlib, Seaborn (visualization)
-- SciPy (signal processing)
-- Jupyter Notebooks (recommended for exploration)
-
----
-
-## How to Run
-
-1. Place raw sensor CSV files in `data/raw/MetaMotion/`.
-2. Run scripts in order:
-   - `make_dataset.py` → `remove_outliers.py` → `build_features.py` → `train_model.py` → `count_repetitions.py`
-3. Inspect outputs in `data/interim/` and generated plots for analysis.
-
----
-
-## Project Structure
-
+```text
+Raw accelerometer + gyroscope CSV files
+          |
+          v
+Dataset parsing and timestamp alignment
+          |
+          v
+Cleaning and outlier handling
+          |
+          v
+Signal filtering and feature extraction
+  ├── Butterworth low-pass filter
+  ├── PCA
+  ├── rolling-window statistics
+  ├── FFT features
+  └── KMeans cluster features
+          |
+          v
+Participant-isolated train/test split
+          |
+          v
+Classifier comparison and evaluation
+          |
+          v
+Repetition-counting analysis
 ```
+
+## Technology
+
+- Python, Pandas and NumPy
+- SciPy signal processing
+- Scikit-learn (PCA, KMeans and classifiers)
+- Matplotlib and Seaborn
+- Pytest
+
+## Project structure
+
+```text
 data/
-  raw/           # Raw sensor CSV files
-  interim/       # Processed, cleaned, and feature datasets
+  raw/MetaMotion/       wearable sensor CSV files
+  interim/              generated intermediate feature datasets
 src/
   data/
     make_dataset.py
   features/
     remove_outliers.py
     build_features.py
+    TemporalAbstraction.py
+    FrequencyAbstraction.py
+    DataTransformation.py
     count_repetitions.py
   models/
-    train_model.py
     LearningAlgorithms.py
+    split.py
+    train_model.py
+tests/
+  test_model_split.py
+  test_temporal_abstraction.py
+requirements.txt
+README.md
 ```
 
----
+## Setup
 
-## Results & Insights
+Python 3.10+ is recommended.
 
-- Robust preprocessing and outlier removal significantly improve data quality.
-- Advanced feature engineering (temporal, frequency, PCA, clustering) boosts model accuracy.
-- Random Forest and Neural Network models achieve high classification performance.
-- Participant-based evaluation demonstrates model generalization to new users.
-- Automated repetition counting provides reliable exercise metrics for training analysis.
----
+Windows PowerShell:
+
+```powershell
+git clone https://github.com/san613deep/fitRepAnalyzer.git
+cd fitRepAnalyzer
+python -m venv .venv
+.\.venv\Scripts\Activate.ps1
+python -m pip install --upgrade pip
+pip install -r requirements.txt
+```
+
+macOS / Linux:
+
+```bash
+git clone https://github.com/san613deep/fitRepAnalyzer.git
+cd fitRepAnalyzer
+python -m venv .venv
+source .venv/bin/activate
+python -m pip install --upgrade pip
+pip install -r requirements.txt
+```
+
+## Data
+
+The project uses MetaMotion sensor CSV files. The raw data currently tracked in this repository is retained as the sample input. If you replace it, preserve the expected timestamp and sensor columns used by the parsing scripts.
+
+## Run the pipeline
+
+Run the scripts from the repository root in this order, after confirming that the expected input files are present:
+
+1. Dataset preparation: `python src/data/make_dataset.py`
+2. Outlier handling: `python src/features/remove_outliers.py`
+3. Feature engineering: `python src/features/build_features.py`
+4. Model training: `python src/models/train_model.py`
+5. Repetition analysis: `python src/features/count_repetitions.py`
+
+The feature-generation and model-training scripts currently contain exploratory plotting and fixed experiment settings. Review their input/output paths before running them in a different environment.
+
+## Participant-level evaluation
+
+Randomly splitting individual sensor rows can place measurements from the same participant in both train and test sets, producing optimistic results. The training workflow now uses `GroupShuffleSplit` with participant IDs as groups, while excluding participant, category and set identifiers from model features.
+
+The selected feature list is retained from the training-time forward-selection result rather than replaced by a sample-specific hard-coded list. Forward selection iterates features in a stable column order for reproducibility.
+
+## Run tests
+
+```bash
+python -m pytest tests/ -q
+```
+
+The unit tests cover:
+- Disjoint participant groups between training and test partitions.
+- Exclusion of metadata and target columns from model features.
+- Rolling-window mean and standard-deviation calculations.
+
+These tests do not run the full sensor-data pipeline or establish model accuracy. GitHub Actions runs the unit tests on pushes and pull requests.
+
+## Limitations
+
+- The end-to-end scripts are exploratory and include plotting and local data-path assumptions.
+- Hyperparameters and signal-filter cutoffs require validation on the dataset and sensor sampling rates being used.
+- Participant-isolated holdout is more informative than row-random splitting, but repeated group splits or leave-one-participant-out evaluation would provide stronger evidence.
+- Repetition counting needs a separately documented ground-truth protocol and error analysis before accuracy claims are made.
+- This project is a research/learning implementation, not a validated fitness or medical measurement product.
+
+## Future improvements
+
+- Refactor exploratory scripts into import-safe functions and a single configurable CLI.
+- Add a participant-level cross-validation report with per-participant metrics.
+- Track model artifacts and experiment configurations.
+- Add repetition-count ground truth and MAE/error distributions.
+- Add plots and a concise results table generated from a reproducible run.
