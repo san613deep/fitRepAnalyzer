@@ -42,7 +42,7 @@ class ClassificationAlgorithms:
             print(i)
 
             # Determine the features left to select.
-            features_left = list(set(X_train.columns) - set(selected_features))
+            features_left = [feature for feature in X_train.columns if feature not in selected_features]
             best_perf = 0
             best_attribute = ""
 

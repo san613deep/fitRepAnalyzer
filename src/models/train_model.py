@@ -3,9 +3,10 @@
 
 import numpy as np
 import pandas as pd
-from sklearn.model_selection import train_test_split
+
 import matplotlib.pyplot as plt
 from LearningAlgorithms import ClassificationAlgorithms
+from split import split_by_participant
 
 # import seaborn as sns
 import itertools
@@ -24,11 +25,8 @@ df = pd.read_pickle("../../data/interim/03_data_features.pkl")
 # Create a training and test set
 # --------------------------------------------------------------
 df_train = df.drop(["participant", "category", "set"], axis=1)
-X = df_train.drop("label", axis=1)
-y = df_train["label"]
-
-X_train, X_test, y_train, y_test = train_test_split(
-    X, y, test_size=0.25, random_state=42, stratify=y
+X_train, X_test, y_train, y_test = split_by_participant(
+    df, test_size=0.25, random_state=42
 )
 
 fig, ax = plt.subplots(figsize=(10, 5))
@@ -59,10 +57,10 @@ print("Time features:", len(time_features))
 print("Frequency features", len(freq_features))
 print("Cluster features", len(cluster_features))
 
-feature_set_1 = list(set(basic_features))
-feature_set_2 = list(set(basic_features + square_features + pca_features))
-feature_set_3 = list(set(feature_set_2 + time_features))
-feature_set_4 = list(set(feature_set_3 + freq_features + cluster_features))
+feature_set_1 = list(dict.fromkeys(basic_features))
+feature_set_2 = list(dict.fromkeys(basic_features + square_features + pca_features))
+feature_set_3 = list(dict.fromkeys(feature_set_2 + time_features))
+feature_set_4 = list(dict.fromkeys(feature_set_3 + freq_features + cluster_features))
 # --------------------------------------------------------------
 # Perform forward feature selection using simple decision tree
 # --------------------------------------------------------------
@@ -73,18 +71,8 @@ selected_features, ordered_features, ordered_scores = learner.forward_selection(
     max_features, X_train, y_train
 )
 
-selected_features = {
-    "acc_z_freq_0.0_Hz_ws_14",
-    "acc_x_freq_0.0_Hz_ws_14",
-    "duration",
-    "gyr_r_temp_mean_ws_5",
-    "acc_y_max_freq",
-    "gyr_z_pse",
-    "acc_x_freq_0.357_Hz_ws_14",
-    "acc_y_freq_1.429_Hz_ws_14",
-    "acc_x",
-    "acc_x_freq_1.071_Hz_ws_14",
-}
+# Keep the features selected from the training data; do not replace them with a sample-specific list.
+selected_features = list(selected_features)
 
 plt.figure(figsize=(10, 5))
 plt.plot(np.arange(1, max_features + 1, 1), ordered_scores)
